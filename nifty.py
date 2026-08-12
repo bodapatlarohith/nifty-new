@@ -19,143 +19,277 @@ BG_COLOR = "#ffffff"
 TEXT_COLOR = "#1a1a1a"
 
 NIFTY50 = [
-    "ADANIENT","ADANIPORTS","APOLLOHOSP","ASIANPAINT","AXISBANK",
-    "BAJAJ-AUTO","BAJFINANCE","BAJAJFINSV","BEL","BHARTIARTL",
-    "CIPLA","COALINDIA","DRREDDY","EICHERMOT","ETERNAL","GRASIM",
-    "HCLTECH","HDFCBANK","HDFCLIFE","HEROMOTOCO","HINDALCO",
-    "HINDUNILVR","ICICIBANK","ITC","INDUSINDBK","INFY","JSWSTEEL",
-    "JIOFIN","KOTAKBANK","LT","M&M","MARUTI","MAXHEALTH","NESTLEIND",
-    "NTPC","ONGC","POWERGRID","RELIANCE","SBILIFE","SHRIRAMFIN",
-    "SBIN","SUNPHARMA","TCS","TATACONSUM","TATAMOTORS","TATASTEEL",
-    "TECHM","TITAN","TRENT","ULTRACEMCO","WIPRO","INDIGO"
+    "ADANIENT", "ADANIPORTS", "APOLLOHOSP", "ASIANPAINT", "AXISBANK",
+    "BAJAJ-AUTO", "BAJFINANCE", "BAJAJFINSV", "BEL", "BHARTIARTL",
+    "CIPLA", "COALINDIA", "DRREDDY", "EICHERMOT", "ETERNAL", "GRASIM",
+    "HCLTECH", "HDFCBANK", "HDFCLIFE", "HEROMOTOCO", "HINDALCO",
+    "HINDUNILVR", "ICICIBANK", "ITC", "INDUSINDBK", "INFY", "JSWSTEEL",
+    "JIOFIN", "KOTAKBANK", "LT", "M&M", "MARUTI", "MAXHEALTH", "NESTLEIND",
+    "NTPC", "ONGC", "POWERGRID", "RELIANCE", "SBILIFE", "SHRIRAMFIN",
+    "SBIN", "SUNPHARMA", "TCS", "TATACONSUM", "TATAMOTORS", "TATASTEEL",
+    "TECHM", "TITAN", "TRENT", "ULTRACEMCO", "WIPRO", "INDIGO"
 ]
 
 INDEX_UNDERLYINGS = {
-    "NIFTY","BANKNIFTY","FINNIFTY","NIFTYIT",
-    "MIDCPNIFTY","NIFTYNXT50","NIFTYMIDCAPSELECT"
+    "NIFTY",
+    "BANKNIFTY",
+    "FINNIFTY",
+    "NIFTYIT",
+    "MIDCPNIFTY",
+    "NIFTYNXT50",
+    "NIFTYMIDCAPSELECT"
 }
 
 NSE_HOME = "https://www.nseindia.com/"
-MOST_ACTIVE_PAGE = "https://www.nseindia.com/market-data/most-active-contracts"
-EQUITY_PAGE = "https://www.nseindia.com/market-data/top-gainers-losers"
 
-# These are the NSE snapshot endpoints used for the live
-# derivatives market snapshot.
+MOST_ACTIVE_PAGE = (
+    "https://www.nseindia.com/market-data/"
+    "most-active-contracts"
+)
+
+EQUITY_PAGE = (
+    "https://www.nseindia.com/market-data/"
+    "top-gainers-losers"
+)
+
+# ============================================================
+# NSE API URLS
+# ============================================================
+
 DERIV_URLS = {
-    "futures": "https://www.nseindia.com/api/snapshot-derivatives-equity?index=futures",
-    "options": "https://www.nseindia.com/api/snapshot-derivatives-equity?index=options&limit=20",
-    "calls": "https://www.nseindia.com/api/snapshot-derivatives-equity?index=calls-stocks-vol",
-    "puts": "https://www.nseindia.com/api/snapshot-derivatives-equity?index=puts-stocks-vol",
+
+    "futures":
+        "https://www.nseindia.com/api/"
+        "snapshot-derivatives-equity?index=futures",
+
+    "options":
+        "https://www.nseindia.com/api/"
+        "snapshot-derivatives-equity?index=options&limit=20",
+
+    "calls":
+        "https://www.nseindia.com/api/"
+        "snapshot-derivatives-equity?index=calls-stocks-vol",
+
+    "puts":
+        "https://www.nseindia.com/api/"
+        "snapshot-derivatives-equity?index=puts-stocks-vol",
 }
 
-EQUITY_URL = "https://www.nseindia.com/api/live-analysis-variations"
+# NSE Most Active Contracts
+DERIVATIVE_CONTRACTS_URL = (
+    "https://www.nseindia.com/api/"
+    "snapshot-derivatives-equity?index=contracts"
+)
 
+EQUITY_URL = (
+    "https://www.nseindia.com/api/"
+    "live-analysis-variations"
+)
 
 # ============================================================
 # NSE SESSION
 # ============================================================
 
 def new_nse_session():
-    """
-    Create a fresh NSE session for every actual refresh.
-    Deliberately NOT cached with st.cache_resource, because
-    that can contribute to cache/session warnings on some
-    Streamlit + Anaconda combinations.
-    """
+
     session = requests.Session()
 
     session.headers.update({
+
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/151.0.0.0 Safari/537.36"
         ),
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "en-IN,en;q=0.9",
-        "Referer": MOST_ACTIVE_PAGE,
-        "Connection": "keep-alive",
+
+        "Accept": (
+            "application/json, text/plain, */*"
+        ),
+
+        "Accept-Language":
+            "en-IN,en;q=0.9",
+
+        "Referer":
+            MOST_ACTIVE_PAGE,
+
+        "Connection":
+            "keep-alive",
     })
 
     try:
-        session.get(NSE_HOME, timeout=10)
-        session.get(MOST_ACTIVE_PAGE, timeout=10)
+
+        session.get(
+            NSE_HOME,
+            timeout=10
+        )
+
+        session.get(
+            MOST_ACTIVE_PAGE,
+            timeout=10
+        )
+
     except requests.RequestException:
         pass
 
     return session
 
 
-def fetch_json(session, url, referer=None):
-    old_referer = session.headers.get("Referer")
+def fetch_json(
+    session,
+    url,
+    referer=None
+):
+
+    old_referer = session.headers.get(
+        "Referer"
+    )
 
     if referer:
         session.headers["Referer"] = referer
 
     try:
-        response = session.get(url, timeout=20)
 
-        if response.status_code in (401, 403):
+        response = session.get(
+            url,
+            timeout=20
+        )
+
+        if response.status_code in (
+            401,
+            403
+        ):
+
             session.cookies.clear()
-            session.get(NSE_HOME, timeout=10)
+
+            session.get(
+                NSE_HOME,
+                timeout=10
+            )
 
             if referer:
-                session.get(referer, timeout=10)
 
-            response = session.get(url, timeout=20)
+                session.get(
+                    referer,
+                    timeout=10
+                )
+
+            response = session.get(
+                url,
+                timeout=20
+            )
 
         response.raise_for_status()
+
         return response.json()
 
     finally:
+
         if old_referer:
-            session.headers["Referer"] = old_referer
+
+            session.headers[
+                "Referer"
+            ] = old_referer
+
         else:
-            session.headers.pop("Referer", None)
+
+            session.headers.pop(
+                "Referer",
+                None
+            )
 
 
 # ============================================================
 # HELPERS
 # ============================================================
 
-def get_field(record, *keys, default=None):
-    if not isinstance(record, dict):
+def get_field(
+    record,
+    *keys,
+    default=None
+):
+
+    if not isinstance(
+        record,
+        dict
+    ):
         return default
 
     for key in keys:
-        if key in record and record[key] not in (None, ""):
+
+        if (
+            key in record
+            and record[key] not in (
+                None,
+                ""
+            )
+        ):
+
             return record[key]
 
-    lower = {str(k).lower(): v for k, v in record.items()}
+    lower = {
+        str(k).lower(): v
+        for k, v in record.items()
+    }
 
     for key in keys:
-        value = lower.get(str(key).lower())
 
-        if value not in (None, ""):
+        value = lower.get(
+            str(key).lower()
+        )
+
+        if value not in (
+            None,
+            ""
+        ):
+
             return value
 
     return default
 
 
 def to_num(value):
+
     try:
-        if value in (None, "", "-"):
+
+        if value in (
+            None,
+            "",
+            "-"
+        ):
+
             return None
 
         return float(
-            str(value).replace(",", "")
+            str(value)
+            .replace(",", "")
         )
 
-    except (TypeError, ValueError):
+    except (
+        TypeError,
+        ValueError
+    ):
+
         return None
 
 
 def option_type(value):
-    value = str(value or "").strip().upper()
 
-    if value in ("CALL", "CE"):
+    value = str(
+        value or ""
+    ).strip().upper()
+
+    if value in (
+        "CALL",
+        "CE"
+    ):
+
         return "CE"
 
-    if value in ("PUT", "PE"):
+    if value in (
+        "PUT",
+        "PE"
+    ):
+
         return "PE"
 
     return value or "-"
@@ -166,119 +300,247 @@ def option_type(value):
 # ============================================================
 
 def fetch_preopen(session):
+
     return fetch_json(
+
         session,
-        "https://www.nseindia.com/api/market-data-pre-open?key=ALL",
+
+        "https://www.nseindia.com/api/"
+        "market-data-pre-open?key=ALL",
+
         NSE_HOME
     )
 
 
 def make_preopen_df(raw):
+
     rows = []
 
-    for item in raw.get("data", []):
-        metadata = item.get("metadata", {})
-        symbol = metadata.get("symbol")
+    for item in raw.get(
+        "data",
+        []
+    ):
+
+        metadata = item.get(
+            "metadata",
+            {}
+        )
+
+        symbol = metadata.get(
+            "symbol"
+        )
 
         if symbol in NIFTY50:
+
             rows.append({
-                "symbol": symbol,
-                "price": to_num(metadata.get("lastPrice")),
-                "change": to_num(metadata.get("pChange")),
+
+                "symbol":
+                    symbol,
+
+                "price":
+                    to_num(
+                        metadata.get(
+                            "lastPrice"
+                        )
+                    ),
+
+                "change":
+                    to_num(
+                        metadata.get(
+                            "pChange"
+                        )
+                    ),
             })
 
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(
+        rows
+    )
 
     if df.empty:
         return df
 
-    return df.sort_values(
-        "change",
-        ascending=True
-    ).reset_index(drop=True)
+    return (
+        df
+        .sort_values(
+            "change",
+            ascending=True
+        )
+        .reset_index(
+            drop=True
+        )
+    )
 
 
 # ============================================================
 # DERIVATIVE RESPONSE PARSING
 # ============================================================
 
-def extract_records(raw, kind):
-    if not isinstance(raw, dict):
+def extract_records(
+    raw,
+    kind
+):
+
+    if not isinstance(
+        raw,
+        dict
+    ):
         return []
 
-    # calls-stocks-vol and puts-stocks-vol normally return:
-    # OPTSTK -> data
-    if kind in ("calls", "puts"):
-        optstk = raw.get("OPTSTK")
+    if kind in (
+        "calls",
+        "puts"
+    ):
 
-        if isinstance(optstk, dict):
-            data = optstk.get("data")
+        optstk = raw.get(
+            "OPTSTK"
+        )
 
-            if isinstance(data, list):
+        if isinstance(
+            optstk,
+            dict
+        ):
+
+            data = optstk.get(
+                "data"
+            )
+
+            if isinstance(
+                data,
+                list
+            ):
+
                 return data
 
-    # Most-active options/futures response:
-    # volume -> data
-    volume = raw.get("volume")
+    volume = raw.get(
+        "volume"
+    )
 
-    if isinstance(volume, dict):
-        data = volume.get("data")
+    if isinstance(
+        volume,
+        dict
+    ):
 
-        if isinstance(data, list):
+        data = volume.get(
+            "data"
+        )
+
+        if isinstance(
+            data,
+            list
+        ):
+
             return data
 
-    # Other NSE response layouts
-    for key in ("FUTSTK", "OPTSTK", "data"):
-        block = raw.get(key)
+    for key in (
+        "FUTSTK",
+        "OPTSTK",
+        "data"
+    ):
 
-        if isinstance(block, dict):
-            data = block.get("data")
+        block = raw.get(
+            key
+        )
 
-            if isinstance(data, list):
+        if isinstance(
+            block,
+            dict
+        ):
+
+            data = block.get(
+                "data"
+            )
+
+            if isinstance(
+                data,
+                list
+            ):
+
                 return data
 
-        if isinstance(block, list):
+        if isinstance(
+            block,
+            list
+        ):
+
             return block
 
-    # Generic fallback
     for value in raw.values():
-        if isinstance(value, dict):
-            data = value.get("data")
 
-            if isinstance(data, list):
+        if isinstance(
+            value,
+            dict
+        ):
+
+            data = value.get(
+                "data"
+            )
+
+            if isinstance(
+                data,
+                list
+            ):
+
                 return data
 
     return []
 
 
-def normalize_derivatives(records, kind):
+# ============================================================
+# NORMALIZE DERIVATIVES
+# ============================================================
+
+def normalize_derivatives(
+    records,
+    kind
+):
+
     rows = []
 
     for record in records:
-        if not isinstance(record, dict):
+
+        if not isinstance(
+            record,
+            dict
+        ):
             continue
 
         instrument = str(
+
             get_field(
                 record,
+
                 "instrumentType",
                 "instrument_type",
+
                 default=""
             )
+
         ).upper()
 
-        # Stock futures only
-        if kind == "futures" and instrument:
+        if (
+            kind == "futures"
+            and instrument
+        ):
+
             if instrument != "FUTSTK":
                 continue
 
-        # Stock options only
-        if kind in ("options", "calls", "puts") and instrument:
+        if (
+            kind in (
+                "options",
+                "calls",
+                "puts"
+            )
+            and instrument
+        ):
+
             if instrument != "OPTSTK":
                 continue
 
         symbol = get_field(
+
             record,
+
             "symbol",
             "underlying",
             "underlyingSymbol"
@@ -287,14 +549,22 @@ def normalize_derivatives(records, kind):
         if not symbol:
             continue
 
-        symbol = str(symbol).strip()
+        symbol = str(
+            symbol
+        ).strip()
 
-        if symbol.upper() in INDEX_UNDERLYINGS:
+        if (
+            symbol.upper()
+            in INDEX_UNDERLYINGS
+        ):
             continue
 
         volume = to_num(
+
             get_field(
+
                 record,
+
                 "numberOfContractsTraded",
                 "tradedVolume",
                 "volume",
@@ -303,8 +573,11 @@ def normalize_derivatives(records, kind):
         )
 
         turnover = to_num(
+
             get_field(
+
                 record,
+
                 "totalTurnover",
                 "value",
                 "turnover"
@@ -312,59 +585,84 @@ def normalize_derivatives(records, kind):
         )
 
         row = {
-            "Symbol": symbol,
-            "Expiry": get_field(
-                record,
-                "expiryDate",
-                "expiry_date",
-                "expiry"
-            ),
-            "LTP": to_num(
+
+            "Symbol":
+                symbol,
+
+            "Expiry":
                 get_field(
                     record,
-                    "lastPrice",
-                    "ltp"
-                )
-            ),
-            "Chng": to_num(
-                get_field(
-                    record,
-                    "change",
-                    "netChange",
-                    "chng"
-                )
-            ),
-            "% Chng": to_num(
-                get_field(
-                    record,
-                    "pChange",
-                    "perChange",
-                    "percentChange"
-                )
-            ),
-            "Volume (Contracts)": volume,
-            "Value (₹ Cr)": turnover,
-            "OI": to_num(
-                get_field(
-                    record,
-                    "openInterest",
-                    "oi"
-                )
-            ),
-            "Chg in OI": to_num(
-                get_field(
-                    record,
-                    "changeInOpenInterest",
-                    "changeinOpenInterest",
-                    "changeInOI"
-                )
-            ),
+                    "expiryDate",
+                    "expiry_date",
+                    "expiry"
+                ),
+
+            "LTP":
+                to_num(
+                    get_field(
+                        record,
+                        "lastPrice",
+                        "ltp"
+                    )
+                ),
+
+            "Chng":
+                to_num(
+                    get_field(
+                        record,
+                        "change",
+                        "netChange",
+                        "chng"
+                    )
+                ),
+
+            "% Chng":
+                to_num(
+                    get_field(
+                        record,
+                        "pChange",
+                        "perChange",
+                        "percentChange"
+                    )
+                ),
+
+            "Volume (Contracts)":
+                volume,
+
+            "Value (₹ Cr)":
+                turnover,
+
+            "OI":
+                to_num(
+                    get_field(
+                        record,
+                        "openInterest",
+                        "oi"
+                    )
+                ),
+
+            "Chg in OI":
+                to_num(
+                    get_field(
+                        record,
+                        "changeInOpenInterest",
+                        "changeinOpenInterest",
+                        "changeInOI"
+                    )
+                ),
         }
 
-        if kind in ("options", "calls", "puts"):
+        if kind in (
+            "options",
+            "calls",
+            "puts"
+        ):
+
             row["Type"] = option_type(
+
                 get_field(
                     record,
+
                     "optionType",
                     "option_type",
                     "type"
@@ -372,38 +670,62 @@ def normalize_derivatives(records, kind):
             )
 
             row["Strike"] = to_num(
+
                 get_field(
                     record,
+
                     "strikePrice",
                     "strike"
                 )
             )
 
-        rows.append(row)
+        rows.append(
+            row
+        )
 
     return rows
 
 
-def make_derivative_df(records, kind, top_n=20):
+def make_derivative_df(
+    records,
+    kind,
+    top_n=20
+):
+
     rows = normalize_derivatives(
         records,
         kind
     )
 
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(
+        rows
+    )
 
     if df.empty:
         return df
 
-    if "Volume (Contracts)" in df.columns:
+    if (
+        "Volume (Contracts)"
+        in df.columns
+    ):
+
         df = df.sort_values(
+
             "Volume (Contracts)",
+
             ascending=False,
+
             na_position="last"
         )
 
-    if kind in ("options", "calls", "puts"):
+    if kind in (
+        "options",
+        "calls",
+        "puts"
+    ):
+
         columns = [
+
             "Symbol",
             "Type",
             "Strike",
@@ -416,8 +738,11 @@ def make_derivative_df(records, kind, top_n=20):
             "OI",
             "Chg in OI",
         ]
+
     else:
+
         columns = [
+
             "Symbol",
             "Expiry",
             "LTP",
@@ -430,103 +755,592 @@ def make_derivative_df(records, kind, top_n=20):
         ]
 
     columns = [
+
         column
+
         for column in columns
+
         if column in df.columns
     ]
 
-    return df[columns].head(top_n).reset_index(drop=True)
+    return (
+        df[columns]
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+
+
+# ============================================================
+# NSE DERIVATIVES MARKET
+# ============================================================
+
+def fetch_derivative_market_contracts(
+    session
+):
+
+    raw = fetch_json(
+
+        session,
+
+        DERIVATIVE_CONTRACTS_URL,
+
+        MOST_ACTIVE_PAGE
+    )
+
+    records = []
+
+    if isinstance(
+        raw,
+        dict
+    ):
+
+        volume_block = raw.get(
+            "volume"
+        )
+
+        if isinstance(
+            volume_block,
+            dict
+        ):
+
+            data = volume_block.get(
+                "data"
+            )
+
+            if isinstance(
+                data,
+                list
+            ):
+
+                records = data
+
+    return records
+
+
+def make_derivative_market_df(
+    records,
+    top_n=20
+):
+
+    rows = []
+
+    for record in records:
+
+        if not isinstance(
+            record,
+            dict
+        ):
+            continue
+
+        instrument_type = get_field(
+
+            record,
+
+            "instrumentType",
+            "instrument_type",
+            "instrument"
+        )
+
+        symbol = get_field(
+
+            record,
+
+            "symbol",
+            "underlying",
+            "underlyingSymbol"
+        )
+
+        expiry = get_field(
+
+            record,
+
+            "expiryDate",
+            "expiry_date",
+            "expiry"
+        )
+
+        opt_type = option_type(
+
+            get_field(
+
+                record,
+
+                "optionType",
+                "option_type",
+                "type"
+            )
+        )
+
+        strike = to_num(
+
+            get_field(
+
+                record,
+
+                "strikePrice",
+                "strike"
+            )
+        )
+
+        ltp = to_num(
+
+            get_field(
+
+                record,
+
+                "lastPrice",
+                "ltp"
+            )
+        )
+
+        change = to_num(
+
+            get_field(
+
+                record,
+
+                "change",
+                "netChange",
+                "chng"
+            )
+        )
+
+        percent_change = to_num(
+
+            get_field(
+
+                record,
+
+                "pChange",
+                "perChange",
+                "percentChange"
+            )
+        )
+
+        open_price = to_num(
+
+            get_field(
+
+                record,
+
+                "open",
+                "openPrice",
+                "open_price"
+            )
+        )
+
+        high = to_num(
+
+            get_field(
+
+                record,
+
+                "high",
+                "highPrice",
+                "high_price"
+            )
+        )
+
+        low = to_num(
+
+            get_field(
+
+                record,
+
+                "low",
+                "lowPrice",
+                "low_price"
+            )
+        )
+
+        volume = to_num(
+
+            get_field(
+
+                record,
+
+                "numberOfContractsTraded",
+                "tradedVolume",
+                "volume",
+                "totalTradedVolume"
+            )
+        )
+
+        value = to_num(
+
+            get_field(
+
+                record,
+
+                "totalTurnover",
+                "value",
+                "turnover"
+            )
+        )
+
+        open_interest = to_num(
+
+            get_field(
+
+                record,
+
+                "openInterest",
+                "oi"
+            )
+        )
+
+        underlying_value = to_num(
+
+            get_field(
+
+                record,
+
+                "underlyingValue",
+                "underlying_value",
+                "underlyingValueOfSecurity"
+            )
+        )
+
+        rows.append({
+
+            "Instrument Type":
+                instrument_type,
+
+            "Symbol":
+                symbol,
+
+            "Expiry Date":
+                expiry,
+
+            "Option Type":
+                opt_type,
+
+            "Strike":
+                strike,
+
+            "LTP":
+                ltp,
+
+            "Chng":
+                change,
+
+            "% Chng":
+                percent_change,
+
+            "Open":
+                open_price,
+
+            "High":
+                high,
+
+            "Low":
+                low,
+
+            "Volume (Contracts)":
+                volume,
+
+            "Value (₹ Crores)":
+                value,
+
+            "Open Interest":
+                open_interest,
+
+            "Underlying Value":
+                underlying_value
+        })
+
+    df = pd.DataFrame(
+        rows
+    )
+
+    if df.empty:
+        return df
+
+    if (
+        "Volume (Contracts)"
+        in df.columns
+    ):
+
+        df = df.sort_values(
+
+            "Volume (Contracts)",
+
+            ascending=False,
+
+            na_position="last"
+        )
+
+    return (
+        df
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+
+
+# ============================================================
+# STYLE DERIVATIVE MARKET TABLE
+# ============================================================
+
+def style_derivative_market_table(
+    df
+):
+
+    if df.empty:
+        return df
+
+    def change_color(
+        value
+    ):
+
+        try:
+
+            value = float(
+                value
+            )
+
+            if value > 0:
+
+                return (
+                    f"color: {UP_COLOR}; "
+                    "font-weight: 600;"
+                )
+
+            if value < 0:
+
+                return (
+                    f"color: {DOWN_COLOR}; "
+                    "font-weight: 600;"
+                )
+
+        except Exception:
+            pass
+
+        return ""
+
+    styler = df.style
+
+    for column in (
+        "Chng",
+        "% Chng"
+    ):
+
+        if column in df.columns:
+
+            styler = styler.map(
+
+                change_color,
+
+                subset=[column]
+            )
+
+    formats = {}
+
+    for column in (
+
+        "Strike",
+        "LTP",
+        "Chng",
+        "% Chng",
+        "Open",
+        "High",
+        "Low",
+        "Underlying Value"
+    ):
+
+        if column in df.columns:
+
+            formats[column] = "{:,.2f}"
+
+    for column in (
+
+        "Volume (Contracts)",
+        "Open Interest"
+    ):
+
+        if column in df.columns:
+
+            formats[column] = "{:,.0f}"
+
+    if "Value (₹ Crores)" in df.columns:
+
+        formats[
+            "Value (₹ Crores)"
+        ] = "{:,.2f}"
+
+    return styler.format(
+
+        formats,
+
+        na_rep="-"
+    )
+
+
+def render_derivative_market_table(
+    df
+):
+
+    st.subheader(
+        "📊 Derivatives Market — Top 20 Contracts"
+    )
+
+    if df.empty:
+
+        st.info(
+            "No derivatives market "
+            "contracts returned by NSE."
+        )
+
+        return
+
+    st.dataframe(
+
+        style_derivative_market_table(
+            df
+        ),
+
+        use_container_width=True,
+
+        hide_index=True,
+
+        height=600
+    )
 
 
 # ============================================================
 # STOCK OPTIONS
 # ============================================================
 
-def load_stock_options(session):
-    """
-    Stock Options Top 20:
-    1. Request NSE's official options snapshot.
-    2. Keep only OPTSTK contracts.
-    3. If that endpoint does not expose enough OPTSTK rows,
-       use the official NSE stock-call and stock-put snapshots
-       as a fallback.
-    """
+def load_stock_options(
+    session
+):
 
     first_raw = None
 
     try:
+
         first_raw = fetch_json(
+
             session,
+
             DERIV_URLS["options"],
+
             MOST_ACTIVE_PAGE
         )
 
         first_records = extract_records(
+
             first_raw,
+
             "options"
         )
 
         first_df = make_derivative_df(
+
             first_records,
+
             "options",
+
             20
         )
 
         if len(first_df) > 0:
+
             return {
-                "df": first_df,
-                "raw": first_raw,
-                "source": "NSE options snapshot",
-                "error": None,
+
+                "df":
+                    first_df,
+
+                "raw":
+                    first_raw,
+
+                "source":
+                    "NSE options snapshot",
+
+                "error":
+                    None,
             }
 
     except Exception:
+
         first_df = pd.DataFrame()
 
-    # Fallback: combine the two official stock-option
-    # activity feeds and keep only OPTSTK contracts.
     combined = []
+
     raw_parts = {}
 
-    for kind in ("calls", "puts"):
+    for kind in (
+        "calls",
+        "puts"
+    ):
+
         try:
+
             raw = fetch_json(
+
                 session,
+
                 DERIV_URLS[kind],
+
                 MOST_ACTIVE_PAGE
             )
 
             raw_parts[kind] = raw
 
             combined.extend(
+
                 extract_records(
+
                     raw,
+
                     kind
                 )
             )
 
         except Exception:
+
             continue
 
     fallback_df = make_derivative_df(
+
         combined,
+
         "options",
+
         20
     )
 
     if not fallback_df.empty:
+
         return {
-            "df": fallback_df,
-            "raw": raw_parts,
-            "source": "NSE stock calls + puts fallback",
-            "error": None,
+
+            "df":
+                fallback_df,
+
+            "raw":
+                raw_parts,
+
+            "source":
+                "NSE stock calls + puts fallback",
+
+            "error":
+                None,
         }
 
     return {
-        "df": first_df if "first_df" in locals() else pd.DataFrame(),
-        "raw": first_raw,
-        "source": "NSE options snapshot",
-        "error": None,
+
+        "df":
+            first_df
+            if "first_df" in locals()
+            else pd.DataFrame(),
+
+        "raw":
+            first_raw,
+
+        "source":
+            "NSE options snapshot",
+
+        "error":
+            None,
     }
 
 
@@ -535,73 +1349,136 @@ def load_stock_options(session):
 # ============================================================
 
 def load_derivatives():
+
     session = new_nse_session()
 
     result = {}
 
     # Futures
     try:
+
         raw = fetch_json(
+
             session,
+
             DERIV_URLS["futures"],
+
             MOST_ACTIVE_PAGE
         )
 
         result["futures"] = {
-            "df": make_derivative_df(
-                extract_records(raw, "futures"),
-                "futures",
-                20
-            ),
-            "raw": raw,
-            "error": None,
+
+            "df":
+                make_derivative_df(
+
+                    extract_records(
+                        raw,
+                        "futures"
+                    ),
+
+                    "futures",
+
+                    20
+                ),
+
+            "raw":
+                raw,
+
+            "error":
+                None,
         }
 
     except Exception as e:
+
         result["futures"] = {
-            "df": pd.DataFrame(),
-            "raw": None,
-            "error": str(e),
+
+            "df":
+                pd.DataFrame(),
+
+            "raw":
+                None,
+
+            "error":
+                str(e),
         }
 
-    # Stock options
+    # Stock Options
     try:
-        result["options"] = load_stock_options(
-            session
+
+        result["options"] = (
+            load_stock_options(
+                session
+            )
         )
 
     except Exception as e:
+
         result["options"] = {
-            "df": pd.DataFrame(),
-            "raw": None,
-            "source": None,
-            "error": str(e),
+
+            "df":
+                pd.DataFrame(),
+
+            "raw":
+                None,
+
+            "source":
+                None,
+
+            "error":
+                str(e),
         }
 
-    # Calls and puts
-    for kind in ("calls", "puts"):
+    # Calls and Puts
+    for kind in (
+        "calls",
+        "puts"
+    ):
+
         try:
+
             raw = fetch_json(
+
                 session,
+
                 DERIV_URLS[kind],
+
                 MOST_ACTIVE_PAGE
             )
 
             result[kind] = {
-                "df": make_derivative_df(
-                    extract_records(raw, kind),
-                    kind,
-                    20
-                ),
-                "raw": raw,
-                "error": None,
+
+                "df":
+                    make_derivative_df(
+
+                        extract_records(
+                            raw,
+                            kind
+                        ),
+
+                        kind,
+
+                        20
+                    ),
+
+                "raw":
+                    raw,
+
+                "error":
+                    None,
             }
 
         except Exception as e:
+
             result[kind] = {
-                "df": pd.DataFrame(),
-                "raw": None,
-                "error": str(e),
+
+                "df":
+                    pd.DataFrame(),
+
+                "raw":
+                    None,
+
+                "error":
+                    str(e),
             }
 
     return result
@@ -611,107 +1488,184 @@ def load_derivatives():
 # EQUITY MOVERS
 # ============================================================
 
-def extract_equity_group(raw, group):
-    if not isinstance(raw, dict):
+def extract_equity_group(
+    raw,
+    group
+):
+
+    if not isinstance(
+        raw,
+        dict
+    ):
         return pd.DataFrame()
 
-    block = raw.get(group, {})
+    block = raw.get(
+        group,
+        {}
+    )
 
-    if not isinstance(block, dict):
+    if not isinstance(
+        block,
+        dict
+    ):
         return pd.DataFrame()
 
-    records = block.get("data", [])
+    records = block.get(
+        "data",
+        []
+    )
 
-    if not isinstance(records, list):
+    if not isinstance(
+        records,
+        list
+    ):
         return pd.DataFrame()
 
     rows = []
 
     for record in records:
-        if not isinstance(record, dict):
+
+        if not isinstance(
+            record,
+            dict
+        ):
             continue
 
-        symbol = record.get("symbol")
+        symbol = record.get(
+            "symbol"
+        )
 
         if not symbol:
             continue
 
         turnover = to_num(
+
             record.get(
+
                 "turnover",
-                record.get("totalTradedValue")
+
+                record.get(
+                    "totalTradedValue"
+                )
             )
         )
 
         rows.append({
-            "Symbol": symbol,
-            "Prev Close": to_num(
-                record.get(
-                    "prev_price",
-                    record.get("previousClose")
-                )
-            ),
-            "LTP": to_num(
-                record.get(
-                    "ltp",
-                    record.get("lastPrice")
-                )
-            ),
-            "Chng": to_num(
-                record.get(
-                    "net_price",
-                    record.get("change")
-                )
-            ),
-            "% Chng": to_num(
-                record.get(
-                    "perChange",
-                    record.get("pChange")
-                )
-            ),
-            "Open": to_num(
-                record.get(
-                    "open_price",
-                    record.get("open")
-                )
-            ),
-            "High": to_num(
-                record.get(
-                    "high_price",
-                    record.get("high")
-                )
-            ),
-            "Low": to_num(
-                record.get(
-                    "low_price",
-                    record.get("low")
-                )
-            ),
-            "Volume": to_num(
-                record.get(
-                    "trade_quantity",
-                    record.get("totalTradedVolume")
-                )
-            ),
-            "Value (₹ Cr)": (
-                turnover / 100
-                if turnover is not None
-                else None
-            ),
+
+            "Symbol":
+                symbol,
+
+            "Prev Close":
+                to_num(
+                    record.get(
+                        "prev_price",
+                        record.get(
+                            "previousClose"
+                        )
+                    )
+                ),
+
+            "LTP":
+                to_num(
+                    record.get(
+                        "ltp",
+                        record.get(
+                            "lastPrice"
+                        )
+                    )
+                ),
+
+            "Chng":
+                to_num(
+                    record.get(
+                        "net_price",
+                        record.get(
+                            "change"
+                        )
+                    )
+                ),
+
+            "% Chng":
+                to_num(
+                    record.get(
+                        "perChange",
+                        record.get(
+                            "pChange"
+                        )
+                    )
+                ),
+
+            "Open":
+                to_num(
+                    record.get(
+                        "open_price",
+                        record.get(
+                            "open"
+                        )
+                    )
+                ),
+
+            "High":
+                to_num(
+                    record.get(
+                        "high_price",
+                        record.get(
+                            "high"
+                        )
+                    )
+                ),
+
+            "Low":
+                to_num(
+                    record.get(
+                        "low_price",
+                        record.get(
+                            "low"
+                        )
+                    )
+                ),
+
+            "Volume":
+                to_num(
+                    record.get(
+                        "trade_quantity",
+                        record.get(
+                            "totalTradedVolume"
+                        )
+                    )
+                ),
+
+            "Value (₹ Cr)":
+                (
+                    turnover / 100
+                    if turnover is not None
+                    else None
+                ),
         })
 
-    return pd.DataFrame(rows)
+    return pd.DataFrame(
+        rows
+    )
 
 
 def load_equity_variations():
+
     session = new_nse_session()
 
     result = {}
 
-    for direction in ("gainers", "loosers"):
+    for direction in (
+        "gainers",
+        "loosers"
+    ):
+
         result[direction] = fetch_json(
+
             session,
-            f"{EQUITY_URL}?index={direction}",
+
+            f"{EQUITY_URL}"
+            f"?index={direction}",
+
             EQUITY_PAGE
         )
 
@@ -722,19 +1676,36 @@ def load_equity_variations():
 # TABLE STYLING
 # ============================================================
 
-def style_derivative_table(df):
+def style_derivative_table(
+    df
+):
+
     if df.empty:
         return df
 
-    def change_color(value):
+    def change_color(
+        value
+    ):
+
         try:
-            value = float(value)
+
+            value = float(
+                value
+            )
 
             if value > 0:
-                return f"color: {UP_COLOR}; font-weight: 600;"
+
+                return (
+                    f"color: {UP_COLOR}; "
+                    "font-weight: 600;"
+                )
 
             if value < 0:
-                return f"color: {DOWN_COLOR}; font-weight: 600;"
+
+                return (
+                    f"color: {DOWN_COLOR}; "
+                    "font-weight: 600;"
+                )
 
         except Exception:
             pass
@@ -748,9 +1719,13 @@ def style_derivative_table(df):
         "% Chng",
         "Chg in OI"
     ):
+
         if column in df.columns:
+
             styler = styler.map(
+
                 change_color,
+
                 subset=[column]
             )
 
@@ -762,7 +1737,9 @@ def style_derivative_table(df):
         "% Chng",
         "Strike"
     ):
+
         if column in df.columns:
+
             formats[column] = "{:,.2f}"
 
     for column in (
@@ -770,72 +1747,107 @@ def style_derivative_table(df):
         "OI",
         "Chg in OI"
     ):
+
         if column in df.columns:
+
             formats[column] = "{:,.0f}"
 
     if "Value (₹ Cr)" in df.columns:
-        formats["Value (₹ Cr)"] = "{:,.2f}"
+
+        formats[
+            "Value (₹ Cr)"
+        ] = "{:,.2f}"
 
     return styler.format(
+
         formats,
+
         na_rep="-"
     )
 
 
 def render_derivative_table(
     title,
-    section,
-    show_source=False
+    section
 ):
-    st.subheader(title)
 
-    if section.get("error"):
+    st.subheader(
+        title
+    )
+
+    if section.get(
+        "error"
+    ):
+
         st.warning(
+
             f"Could not load this table: "
             f"{section['error']}"
         )
+
         return
 
     df = section.get(
+
         "df",
+
         pd.DataFrame()
     )
 
     if df.empty:
+
         st.info(
+
             "No stock derivative records "
             "were returned by NSE."
         )
+
         return
 
     st.dataframe(
-        style_derivative_table(df),
+
+        style_derivative_table(
+            df
+        ),
+
         use_container_width=True,
+
         hide_index=True,
+
         height=500
     )
 
-    # Deliberately do NOT show the fallback explanation
-    # under the Stock Options table.
-    if show_source and section.get("source"):
-        st.caption(
-            f"Source: {section['source']}"
-        )
 
+def style_equity_table(
+    df
+):
 
-def style_equity_table(df):
     if df.empty:
         return df
 
-    def color_change(value):
+    def color_change(
+        value
+    ):
+
         try:
-            value = float(value)
+
+            value = float(
+                value
+            )
 
             if value > 0:
-                return f"color: {UP_COLOR}; font-weight: 600;"
+
+                return (
+                    f"color: {UP_COLOR}; "
+                    "font-weight: 600;"
+                )
 
             if value < 0:
-                return f"color: {DOWN_COLOR}; font-weight: 600;"
+
+                return (
+                    f"color: {DOWN_COLOR}; "
+                    "font-weight: 600;"
+                )
 
         except Exception:
             pass
@@ -844,10 +1856,17 @@ def style_equity_table(df):
 
     styler = df.style
 
-    for column in ("Chng", "% Chng"):
+    for column in (
+        "Chng",
+        "% Chng"
+    ):
+
         if column in df.columns:
+
             styler = styler.map(
+
                 color_change,
+
                 subset=[column]
             )
 
@@ -861,25 +1880,42 @@ def style_equity_table(df):
         "High",
         "Low"
     ):
+
         if column in df.columns:
+
             formats[column] = "{:,.2f}"
 
     if "% Chng" in df.columns:
-        formats["% Chng"] = "{:+.2f}%"
+
+        formats[
+            "% Chng"
+        ] = "{:+.2f}%"
 
     if "Volume" in df.columns:
-        formats["Volume"] = "{:,.0f}"
+
+        formats[
+            "Volume"
+        ] = "{:,.0f}"
 
     if "Value (₹ Cr)" in df.columns:
-        formats["Value (₹ Cr)"] = "{:,.2f}"
+
+        formats[
+            "Value (₹ Cr)"
+        ] = "{:,.2f}"
 
     return styler.format(
+
         formats,
+
         na_rep="-"
     )
 
 
-def prepare_equity_df(df, descending):
+def prepare_equity_df(
+    df,
+    descending
+):
+
     if df.empty:
         return df
 
@@ -887,27 +1923,49 @@ def prepare_equity_df(df, descending):
         return df
 
     return (
-        df.dropna(subset=["% Chng"])
+
+        df
+
+        .dropna(
+            subset=["% Chng"]
+        )
+
         .sort_values(
+
             "% Chng",
+
             ascending=not descending
         )
+
         .head(20)
-        .reset_index(drop=True)
+
+        .reset_index(
+            drop=True
+        )
     )
 
 
-def render_equity_table(title, df):
-    st.subheader(title)
+def render_equity_table(
+    title,
+    df
+):
+
+    st.subheader(
+        title
+    )
 
     if df.empty:
+
         st.info(
+
             "No data returned by NSE "
             "for this table."
         )
+
         return
 
     columns = [
+
         "Symbol",
         "Prev Close",
         "LTP",
@@ -921,37 +1979,95 @@ def render_equity_table(title, df):
     ]
 
     columns = [
+
         column
+
         for column in columns
+
         if column in df.columns
     ]
 
     st.dataframe(
+
         style_equity_table(
             df[columns]
         ),
+
         use_container_width=True,
+
         hide_index=True,
+
         height=500
     )
 
 
 # ============================================================
-# MANUAL + AUTOMATIC REFRESH
+# AUTO REFRESH
 # ============================================================
 
-# Browser-side refresh every 60 seconds.
-# This avoids requiring streamlit-autorefresh to be installed.
-st.markdown(
-    """
-    <script>
-        setTimeout(function() {
-            window.location.reload();
-        }, 60000);
-    </script>
-    """,
-    unsafe_allow_html=True
-)
+with st.sidebar:
+
+    # Only refresh settings
+    st.markdown("### Settings")
+
+    auto_refresh = st.checkbox(
+        "Auto-refresh",
+        value=False
+    )
+
+    refresh_time = st.selectbox(
+        "Refresh interval",
+        [
+            "30 seconds",
+            "1 minute",
+            "2 minutes",
+            "3 minutes"
+        ],
+        index=0
+    )
+
+    refresh_seconds = {
+
+        "30 seconds": 30,
+        "1 minute": 60,
+        "2 minutes": 120,
+        "3 minutes": 180
+
+    }[refresh_time]
+
+    if auto_refresh:
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size:14px;
+                margin-top:8px;
+                margin-bottom:8px;
+            ">
+                🔄 Auto-refresh every {refresh_time}
+            </div>
+
+            <script>
+                setTimeout(function() {{
+                    window.location.reload();
+                }}, {refresh_seconds * 1000});
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
+    if st.button(
+        "🔄 Refresh now",
+        use_container_width=True
+    ):
+
+        st.cache_data.clear()
+        st.rerun()
+
+
+# ============================================================
+# TITLE
+# ============================================================
 
 st.title(
     "Nifty50 Pre-Market Dashboard"
@@ -962,19 +2078,21 @@ refresh_col, debug_col = st.columns(
 )
 
 with refresh_col:
+
     if st.button(
         "🔄 Refresh Now",
         use_container_width=True
     ):
-        # Clear every st.cache_data entry.
-        # The next script run therefore requests
-        # fresh NSE data.
+
         st.cache_data.clear()
         st.rerun()
 
 with debug_col:
+
     show_debug = st.checkbox(
+
         "Show raw response (debug)",
+
         value=False
     )
 
@@ -984,6 +2102,7 @@ with debug_col:
 # ============================================================
 
 try:
+
     session = new_nse_session()
 
     preopen_raw = fetch_preopen(
@@ -995,6 +2114,7 @@ try:
     )
 
 except Exception as e:
+
     market_df = pd.DataFrame()
 
     st.error(
@@ -1005,19 +2125,24 @@ except Exception as e:
 if not market_df.empty:
 
     top_loser = market_df.iloc[0]
+
     top_gainer = market_df.iloc[-1]
 
     st.caption(
+
         "NSE Pre-Market — "
+
         + datetime.now().strftime(
             "%d-%b-%Y %H:%M:%S"
         )
     )
 
     st.write(
+
         f"**Top Gainer:** "
         f"{top_gainer['symbol']} "
-        f"(+{top_gainer['change']:.2f}%)  |  "
+        f"(+{top_gainer['change']:.2f}%)"
+        f"  |  "
         f"**Top Loser:** "
         f"{top_loser['symbol']} "
         f"({top_loser['change']:.2f}%)"
@@ -1028,27 +2153,38 @@ if not market_df.empty:
     )
 
     with col1:
+
         fig, ax = plt.subplots(
             figsize=(10, 10)
         )
 
         colors = [
+
             UP_COLOR
             if value >= 0
             else DOWN_COLOR
-            for value in market_df["change"]
+
+            for value
+            in market_df["change"]
         ]
 
         ax.barh(
+
             market_df["symbol"],
+
             market_df["change"],
+
             color=colors,
+
             height=0.6
         )
 
         ax.axvline(
+
             0,
+
             color=TEXT_COLOR,
+
             linewidth=0.8
         )
 
@@ -1057,34 +2193,52 @@ if not market_df.empty:
         )
 
         for index, value in enumerate(
+
             market_df["change"]
         ):
+
             ax.text(
+
                 value,
+
                 index,
+
                 f" {value:+.2f}%",
+
                 va="center",
+
                 ha=(
                     "left"
                     if value >= 0
                     else "right"
                 ),
+
                 fontsize=8
             )
 
-        st.pyplot(fig)
-        plt.close(fig)
+        st.pyplot(
+            fig
+        )
+
+        plt.close(
+            fig
+        )
 
     with col2:
+
         up = int(
+
             (
-                market_df["change"] >= 0
+                market_df["change"]
+                >= 0
             ).sum()
         )
 
         down = int(
+
             (
-                market_df["change"] < 0
+                market_df["change"]
+                < 0
             ).sum()
         )
 
@@ -1093,19 +2247,29 @@ if not market_df.empty:
         )
 
         ax.pie(
+
             [up, down],
+
             labels=[
+
                 f"Up ({up})",
+
                 f"Down ({down})"
             ],
+
             colors=[
+
                 UP_COLOR,
+
                 DOWN_COLOR
             ],
+
             wedgeprops={
                 "width": 0.4
             },
+
             autopct="%1.0f%%",
+
             startangle=90
         )
 
@@ -1114,20 +2278,32 @@ if not market_df.empty:
         )
 
         ratio = (
+
             up / down
+
             if down > 0
+
             else float("inf")
         )
 
         ax.text(
+
             0,
+
             -1.3,
+
             f"A/D Ratio: {ratio:.2f}",
+
             ha="center"
         )
 
-        st.pyplot(fig)
-        plt.close(fig)
+        st.pyplot(
+            fig
+        )
+
+        plt.close(
+            fig
+        )
 
 
 # ============================================================
@@ -1140,52 +2316,143 @@ st.header(
     "📊 Derivatives Market"
 )
 
+
+# ============================================================
+# NSE DERIVATIVES MARKET TABLE
+# ============================================================
+
 try:
+
+    derivative_market_session = (
+        new_nse_session()
+    )
+
+    derivative_market_records = (
+        fetch_derivative_market_contracts(
+            derivative_market_session
+        )
+    )
+
+    derivative_market_df = (
+        make_derivative_market_df(
+
+            derivative_market_records,
+
+            top_n=20
+        )
+    )
+
+    render_derivative_market_table(
+        derivative_market_df
+    )
+
+except Exception as e:
+
+    derivative_market_df = pd.DataFrame()
+
+    st.error(
+
+        "Could not load NSE "
+        "Derivatives Market: "
+        f"{e}"
+    )
+
+
+st.divider()
+
+
+# ============================================================
+# EXISTING DERIVATIVE TABLES
+# ============================================================
+
+try:
+
     derivatives = load_derivatives()
 
 except Exception as e:
+
     derivatives = None
 
     st.error(
-        f"Could not load derivatives data: {e}"
+
+        f"Could not load derivatives data: "
+        f"{e}"
     )
 
 
 if derivatives:
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(
+        2
+    )
 
     with col1:
+
         render_derivative_table(
+
             "Stock Futures — Top 20 Contracts",
+
             derivatives["futures"]
         )
 
     with col2:
+
         render_derivative_table(
+
             "Stock Options — Top 20 Contracts",
+
             derivatives["options"]
         )
 
-    col3, col4 = st.columns(2)
+    col3, col4 = st.columns(
+        2
+    )
 
     with col3:
+
         render_derivative_table(
+
             "🟢 Most Active Stock Calls",
+
             derivatives["calls"]
         )
 
     with col4:
+
         render_derivative_table(
+
             "🔴 Most Active Stock Puts",
+
             derivatives["puts"]
         )
 
     if show_debug:
+
         st.divider()
+
         st.subheader(
             "NSE Raw Responses"
         )
+
+        with st.expander(
+            "Debug — Derivatives Market"
+        ):
+
+            st.write(
+                "Rows:",
+                len(
+                    derivative_market_df
+                )
+            )
+
+            st.write(
+                "Endpoint:",
+                DERIVATIVE_CONTRACTS_URL
+            )
+
+            st.json(
+                derivative_market_records
+            )
 
         for name in (
             "futures",
@@ -1193,20 +2460,26 @@ if derivatives:
             "calls",
             "puts"
         ):
+
             section = derivatives[name]
 
             with st.expander(
                 f"Debug — {name}"
             ):
+
                 st.write(
+
                     "Rows:",
+
                     len(
                         section["df"]
                     )
                 )
 
                 st.write(
+
                     "Source:",
+
                     section.get(
                         "source",
                         "-"
@@ -1214,7 +2487,9 @@ if derivatives:
                 )
 
                 st.write(
+
                     "Error:",
+
                     section.get(
                         "error"
                     )
@@ -1223,15 +2498,16 @@ if derivatives:
                 if section.get(
                     "raw"
                 ) is not None:
+
                     st.json(
                         section["raw"]
                     )
 
 
 st.caption(
-    "Derivatives data refreshes every "
-    "60 seconds. Use Refresh Now for an "
-    "immediate NSE request."
+
+    "Derivatives data refreshes according "
+    "to the selected auto-refresh interval."
 )
 
 
@@ -1250,45 +2526,85 @@ st.caption(
     "Top Gainers / Top Losers"
 )
 
+
 try:
-    equity_raw = load_equity_variations()
 
-    nifty_gainers = prepare_equity_df(
-        extract_equity_group(
-            equity_raw.get("gainers"),
-            "NIFTY"
-        ),
-        descending=True
+    equity_raw = (
+        load_equity_variations()
     )
 
-    nifty_losers = prepare_equity_df(
-        extract_equity_group(
-            equity_raw.get("loosers"),
-            "NIFTY"
-        ),
-        descending=False
+    nifty_gainers = (
+        prepare_equity_df(
+
+            extract_equity_group(
+
+                equity_raw.get(
+                    "gainers"
+                ),
+
+                "NIFTY"
+            ),
+
+            descending=True
+        )
     )
 
-    fno_gainers = prepare_equity_df(
-        extract_equity_group(
-            equity_raw.get("gainers"),
-            "FOSec"
-        ),
-        descending=True
+    nifty_losers = (
+        prepare_equity_df(
+
+            extract_equity_group(
+
+                equity_raw.get(
+                    "loosers"
+                ),
+
+                "NIFTY"
+            ),
+
+            descending=False
+        )
     )
 
-    fno_losers = prepare_equity_df(
-        extract_equity_group(
-            equity_raw.get("loosers"),
-            "FOSec"
-        ),
-        descending=False
+    fno_gainers = (
+        prepare_equity_df(
+
+            extract_equity_group(
+
+                equity_raw.get(
+                    "gainers"
+                ),
+
+                "FOSec"
+            ),
+
+            descending=True
+        )
+    )
+
+    fno_losers = (
+        prepare_equity_df(
+
+            extract_equity_group(
+
+                equity_raw.get(
+                    "loosers"
+                ),
+
+                "FOSec"
+            ),
+
+            descending=False
+        )
     )
 
 except Exception as e:
+
     nifty_gainers = pd.DataFrame()
+
     nifty_losers = pd.DataFrame()
+
     fno_gainers = pd.DataFrame()
+
     fno_losers = pd.DataFrame()
 
     st.error(
@@ -1296,36 +2612,54 @@ except Exception as e:
     )
 
 
-col1, col2 = st.columns(2)
+col1, col2 = st.columns(
+    2
+)
 
 with col1:
+
     render_equity_table(
+
         "🟢 NIFTY 50 — Top 20 Gainers",
+
         nifty_gainers
     )
 
 with col2:
+
     render_equity_table(
+
         "🔴 NIFTY 50 — Top 20 Losers",
+
         nifty_losers
     )
 
-col3, col4 = st.columns(2)
+
+col3, col4 = st.columns(
+    2
+)
 
 with col3:
+
     render_equity_table(
+
         "🟢 F&O Securities — Top 20 Gainers",
+
         fno_gainers
     )
 
 with col4:
+
     render_equity_table(
+
         "🔴 F&O Securities — Top 20 Losers",
+
         fno_losers
     )
 
+
 st.caption(
-    "Equity data refreshes every "
-    "60 seconds. Use Refresh Now for "
-    "an immediate NSE request."
+
+    "Equity data refreshes according "
+    "to the selected auto-refresh interval."
 )
